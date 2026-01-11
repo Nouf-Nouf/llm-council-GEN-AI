@@ -181,6 +181,24 @@ function App() {
     }
   };
 
+  const handleDeleteConversation = async (conversationId) => {
+    try {
+      await api.deleteConversation(conversationId);
+
+      // Remove from conversations list
+      setConversations(conversations.filter(conv => conv.id !== conversationId));
+
+      // If the deleted conversation was currently selected, clear the selection
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setCurrentConversation(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+      throw error; // Re-throw to let the Sidebar handle the error display
+    }
+  };
+
   return (
     <div className="app">
       <Sidebar
@@ -188,6 +206,7 @@ function App() {
         currentConversationId={currentConversationId}
         onSelectConversation={handleSelectConversation}
         onNewConversation={handleNewConversation}
+        onDeleteConversation={handleDeleteConversation}
       />
       <ChatInterface
         conversation={currentConversation}
