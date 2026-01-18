@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
 import './Stage3.css';
 
-export default function Stage3({ finalResponse }) {
+export default function Stage3({ finalResponse, timing }) {
   if (!finalResponse) {
     return null;
   }
@@ -9,6 +9,12 @@ export default function Stage3({ finalResponse }) {
   return (
     <div className="stage stage3">
       <h3 className="stage-title">Stage 3: Final Council Answer</h3>
+      {timing && (
+        <div className="stage-timing">
+          <span className="timing-label">Computation time:</span>
+          <span className="timing-value">{timing}s</span>
+        </div>
+      )}
       <div className="final-response">
         <div className="chairman-label">
           Chairman: {finalResponse.model.split('/')[1] || finalResponse.model}

@@ -57,6 +57,19 @@ function App() {
     setCurrentConversationId(id);
   };
 
+  const handleDeleteConversation = async (id) => {
+    try {
+      await api.deleteConversation(id);
+      setConversations((prev) => prev.filter((conv) => conv.id !== id));
+      if (currentConversationId === id) {
+        setCurrentConversationId(null);
+        setCurrentConversation(null);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
+
   const handleSendMessage = async (content) => {
     if (!currentConversationId) return;
 
@@ -83,13 +96,11 @@ function App() {
         },
       };
 
-      // Add the partial assistant message
       setCurrentConversation((prev) => ({
         ...prev,
         messages: [...prev.messages, assistantMessage],
       }));
 
-      // Send message with streaming
       await api.sendMessageStream(currentConversationId, content, (eventType, event) => {
         switch (eventType) {
           case 'stage1_start':
@@ -106,6 +117,8 @@ function App() {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
               lastMsg.stage1 = event.data;
+              lastMsg.timing = lastMsg.timing || {};
+              lastMsg.timing.stage1 = event.timing?.duration;
               lastMsg.loading.stage1 = false;
               return { ...prev, messages };
             });
@@ -126,6 +139,8 @@ function App() {
               const lastMsg = messages[messages.length - 1];
               lastMsg.stage2 = event.data;
               lastMsg.metadata = event.metadata;
+              lastMsg.timing = lastMsg.timing || {};
+              lastMsg.timing.stage2 = event.timing?.duration;
               lastMsg.loading.stage2 = false;
               return { ...prev, messages };
             });
@@ -145,6 +160,8 @@ function App() {
               const messages = [...prev.messages];
               const lastMsg = messages[messages.length - 1];
               lastMsg.stage3 = event.data;
+              lastMsg.timing = lastMsg.timing || {};
+              lastMsg.timing.stage3 = event.timing?.duration;
               lastMsg.loading.stage3 = false;
               return { ...prev, messages };
             });
@@ -178,24 +195,6 @@ function App() {
         messages: prev.messages.slice(0, -2),
       }));
       setIsLoading(false);
-    }
-  };
-
-  const handleDeleteConversation = async (conversationId) => {
-    try {
-      await api.deleteConversation(conversationId);
-
-      // Remove from conversations list
-      setConversations(conversations.filter(conv => conv.id !== conversationId));
-
-      // If the deleted conversation was currently selected, clear the selection
-      if (currentConversationId === conversationId) {
-        setCurrentConversationId(null);
-        setCurrentConversation(null);
-      }
-    } catch (error) {
-      console.error('Failed to delete conversation:', error);
-      throw error; // Re-throw to let the Sidebar handle the error display
     }
   };
 

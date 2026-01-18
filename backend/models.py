@@ -4,7 +4,6 @@ import requests
 class Role(Enum) :
     CHAIRMAN = 0
     COUNCILOR = 1
-    USER = 2
 
 class ModelType(Enum):
     DEFAULT= 0

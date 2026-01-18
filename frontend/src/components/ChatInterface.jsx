@@ -78,7 +78,7 @@ export default function ChatInterface({
                       <span>Running Stage 1: Collecting individual responses...</span>
                     </div>
                   )}
-                  {msg.stage1 && <Stage1 responses={msg.stage1} />}
+                  {msg.stage1 && <Stage1 responses={msg.stage1} timing={msg.timing?.stage1} />}
 
                   {/* Stage 2 */}
                   {msg.loading?.stage2 && (
@@ -92,6 +92,7 @@ export default function ChatInterface({
                       rankings={msg.stage2}
                       labelToModel={msg.metadata?.label_to_model}
                       aggregateRankings={msg.metadata?.aggregate_rankings}
+                      timing={msg.timing?.stage2}
                     />
                   )}
 
@@ -102,7 +103,7 @@ export default function ChatInterface({
                       <span>Running Stage 3: Final synthesis...</span>
                     </div>
                   )}
-                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} />}
+                  {msg.stage3 && <Stage3 finalResponse={msg.stage3} timing={msg.timing?.stage3} />}
                 </div>
               )}
             </div>

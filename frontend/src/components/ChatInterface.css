@@ -230,3 +230,27 @@
   box-shadow: none;
   transform: none;
 }
+
+/* Timing display styles */
+.stage-timing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  font-size: 14px;
+}
+
+.timing-label {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.timing-value {
+  color: var(--accent-primary);
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}

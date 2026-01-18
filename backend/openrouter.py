@@ -46,7 +46,7 @@ async def query_model(
         return None
     """
     
-    #code matheo
+    #code (à modifier)
     """Envoie une requête à l'instance Ollama locale."""
 
     headers = {
@@ -56,7 +56,7 @@ async def query_model(
     payload = {
         "model": model.model_name,
         "messages": messages,
-        "stream": False  # On désactive le streaming pour récupérer la réponse complète
+        "stream": False  
     }
 
     try:

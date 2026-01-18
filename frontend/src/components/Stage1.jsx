@@ -2,7 +2,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import './Stage1.css';
 
-export default function Stage1({ responses }) {
+export default function Stage1({ responses, timing }) {
   const [activeTab, setActiveTab] = useState(0);
 
   if (!responses || responses.length === 0) {
@@ -12,6 +12,12 @@ export default function Stage1({ responses }) {
   return (
     <div className="stage stage1">
       <h3 className="stage-title">Stage 1: Individual Responses</h3>
+      {timing && (
+        <div className="stage-timing">
+          <span className="timing-label">Computation time:</span>
+          <span className="timing-value">{timing}s</span>
+        </div>
+      )}
 
       <div className="tabs">
         {responses.map((resp, index) => (

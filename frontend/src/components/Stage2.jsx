@@ -14,7 +14,7 @@ function deAnonymizeText(text, labelToModel) {
   return result;
 }
 
-export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
+export default function Stage2({ rankings, labelToModel, aggregateRankings, timing }) {
   const [activeTab, setActiveTab] = useState(0);
 
   if (!rankings || rankings.length === 0) {
@@ -24,6 +24,12 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
   return (
     <div className="stage stage2">
       <h3 className="stage-title">Stage 2: Peer Rankings</h3>
+      {timing && (
+        <div className="stage-timing">
+          <span className="timing-label">Computation time:</span>
+          <span className="timing-value">{timing}s</span>
+        </div>
+      )}
 
       <h4>Raw Evaluations</h4>
       <p className="stage-description">
@@ -72,7 +78,7 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings }) {
 
       {aggregateRankings && aggregateRankings.length > 0 && (
         <div className="aggregate-rankings">
-          <h4>Aggregate Rankings (Street Cred)</h4>
+          <h4>Aggregate Rankings </h4>
           <p className="stage-description">
             Combined results across all peer evaluations (lower score is better):
           </p>

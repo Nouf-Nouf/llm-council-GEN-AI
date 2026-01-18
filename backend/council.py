@@ -76,28 +76,42 @@ class Council() :
             for label, result in zip(labels, stage1_results)
         ])
 
-        ranking_prompt = (
-             f"""You are evaluating anonymized answers to a user's request.
+        ranking_prompt = f"""
+            You are acting as a neutral evaluator.
 
-                USER REQUEST: {user_query}
+            You are given a USER REQUEST and several ANONYMIZED RESPONSES.
+            Your task is to objectively rank the responses from best to worst.
 
-            ANONYMIZED ANSWERS: {responses_text}
+            USER REQUEST:
+            {user_query}
 
-                Your task:
-                - Review each Response carefully.
-                - Rank the Responses from best to worst based on accuracy, completeness, clarity, and relevance
-                - Then provide the final ranking at the end.
-            IMPORTANT: The final ranking MUST be formatted EXACTLY like this:
-            FINAL RANKING:
+            ANONYMIZED RESPONSES:
+            {responses_text}
+
+            Evaluation criteria (in order of importance):
+            1. Accuracy – factual correctness, absence of hallucinations or false claims.
+            2. Completeness – how well the response fully addresses the user request.
+            3. Relevance – focus on the request without unnecessary or off-topic content.
+            4. Clarity – clear structure, understandable reasoning, precise language.
+            5. Usefulness – how actionable or helpful the response is to the user.
+
+            Instructions:
+            - Carefully read ALL responses before ranking.
+            - Compare responses relative to each other, not against an ideal answer.
+            - If two responses are similar, prefer the one that is more precise and less speculative.
+            - Do NOT assume missing information; judge only what is written.
+
+            Output format requirements (MANDATORY):
+            - Provide ONLY the final ranking.
+            - Do NOT include explanations, analysis, or commentary.
+            - Use each response label exactly once.
+            - Follow the exact format below.
+
+            FORMAT OF FINAL RANKING:
             1. Response A
             2. Response B
-
-            Rules:
-            - In the FINAL RANKING section, include ONLY the numbered list.
-            - Use each Response label exactly once.
-            - Do not mention model names.
             """
-        )
+
 
         messages = [{"role": "user", "content": ranking_prompt}]
 
@@ -300,8 +314,12 @@ class Council() :
 
 
     async def run_full_council(self, user_query: str) -> Tuple[List, List, Dict, Dict]:
+        import time
+        
         # Stage 1: Collect individual responses
+        stage1_start = time.time()
         stage1_results = await self.stage1_collect_responses(user_query)
+        stage1_duration = time.time() - stage1_start
 
         # If no models responded successfully, return error
         if not stage1_results:
@@ -311,22 +329,32 @@ class Council() :
             }, {}
 
         # Stage 2: Collect rankings
+        stage2_start = time.time()
         stage2_results, label_to_model = await self.stage2_collect_rankings(user_query, stage1_results)
+        stage2_duration = time.time() - stage2_start
 
         # Calculate aggregate rankings
         aggregate_rankings = self.calculate_aggregate_rankings(stage2_results, label_to_model)
 
         # Stage 3: Synthesize final answer
+        stage3_start = time.time()
         stage3_result = await self.stage3_synthesize_final(
             user_query,
             stage1_results,
             stage2_results
         )
+        stage3_duration = time.time() - stage3_start
 
         # Prepare metadata
         metadata = {
             "label_to_model": label_to_model,
-            "aggregate_rankings": aggregate_rankings
+            "aggregate_rankings": aggregate_rankings,
+            "timing": {
+                "stage1_duration": round(stage1_duration, 2),
+                "stage2_duration": round(stage2_duration, 2),
+                "stage3_duration": round(stage3_duration, 2),
+                "total_duration": round(stage1_duration + stage2_duration + stage3_duration, 2)
+            }
         }
 
         return stage1_results, stage2_results, stage3_result, metadata

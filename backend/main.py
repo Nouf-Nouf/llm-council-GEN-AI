@@ -17,7 +17,6 @@ council = Council()
 
 app = FastAPI(title="LLM Council API")
 
-# Enable CORS for local development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
@@ -173,6 +172,7 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
     is_first_message = len(conversation["messages"]) == 0
 
     async def event_generator():
+        import time
         try:
             # Add user message
             storage.add_user_message(conversation_id, request.content)
@@ -184,19 +184,25 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
 
             # Stage 1: Collect responses
             yield f"data: {json.dumps({'type': 'stage1_start'})}\n\n"
+            stage1_start = time.time()
             stage1_results = await council.stage1_collect_responses(request.content)
-            yield f"data: {json.dumps({'type': 'stage1_complete', 'data': stage1_results})}\n\n"
+            stage1_duration = time.time() - stage1_start
+            yield f"data: {json.dumps({'type': 'stage1_complete', 'data': stage1_results, 'timing': {'duration': round(stage1_duration, 2)}})}\n\n"
 
             # Stage 2: Collect rankings
             yield f"data: {json.dumps({'type': 'stage2_start'})}\n\n"
+            stage2_start = time.time()
             stage2_results, label_to_model = await council.stage2_collect_rankings(request.content, stage1_results)
+            stage2_duration = time.time() - stage2_start
             aggregate_rankings = council.calculate_aggregate_rankings(stage2_results, label_to_model)
-            yield f"data: {json.dumps({'type': 'stage2_complete', 'data': stage2_results, 'metadata': {'label_to_model': label_to_model, 'aggregate_rankings': aggregate_rankings}})}\n\n"
+            yield f"data: {json.dumps({'type': 'stage2_complete', 'data': stage2_results, 'metadata': {'label_to_model': label_to_model, 'aggregate_rankings': aggregate_rankings}, 'timing': {'duration': round(stage2_duration, 2)}})}\n\n"
 
             # Stage 3: Synthesize final answer
             yield f"data: {json.dumps({'type': 'stage3_start'})}\n\n"
+            stage3_start = time.time()
             stage3_result = await council.stage3_synthesize_final(request.content, stage1_results, stage2_results)
-            yield f"data: {json.dumps({'type': 'stage3_complete', 'data': stage3_result})}\n\n"
+            stage3_duration = time.time() - stage3_start
+            yield f"data: {json.dumps({'type': 'stage3_complete', 'data': stage3_result, 'timing': {'duration': round(stage3_duration, 2)}})}\n\n"
 
             # Wait for title generation if it was started
             if title_task:

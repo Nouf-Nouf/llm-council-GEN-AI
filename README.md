@@ -2,86 +2,122 @@
 
 ![llmcouncil](header.jpg)
 
-The idea of this repo is that instead of asking a question to your favorite LLM provider (e.g. OpenAI GPT 5.1, Google Gemini 3.0 Pro, Anthropic Claude Sonnet 4.5, xAI Grok 4, eg.c), you can group them into your "LLM Council". This repo is a simple, local web app that essentially looks like ChatGPT except it uses OpenRouter to send your query to multiple LLMs, it then asks them to review and rank each other's work, and finally a Chairman LLM produces the final response.
+ **Group member**: Noufel BOUCHENEB
 
-In a bit more detail, here is what happens when you submit a query:
 
-1. **Stage 1: First opinions**. The user query is given to all LLMs individually, and the responses are collected. The individual responses are shown in a "tab view", so that the user can inspect them all one by one.
-2. **Stage 2: Review**. Each individual LLM is given the responses of the other LLMs. Under the hood, the LLM identities are anonymized so that the LLM can't play favorites when judging their outputs. The LLM is asked to rank them in accuracy and insight.
-3. **Stage 3: Final response**. The designated Chairman of the LLM Council takes all of the model's responses and compiles them into a single final answer that is presented to the user.
+## Project Overview
 
-## Vibe Code Alert
+LLM Council is a local web application designed to demonstrate a multi-LLM orchestration architecture.
+Instead of relying on a single language model, the system distributes a user query across multiple LLMs, gathers their independent responses, and then consolidates them into a single, higher-quality answer.
 
-This project was 99% vibe coded as a fun Saturday hack because I wanted to explore and evaluate a number of LLMs side by side in the process of [reading books together with LLMs](https://x.com/karpathy/status/1990577951671509438). It's nice and useful to see multiple responses side by side, and also the cross-opinions of all LLMs on each other's outputs. I'm not going to support it in any way, it's provided here as is for other people's inspiration and I don't intend to improve it. Code is ephemeral now and libraries are over, ask your LLM to change it in whatever way you like.
+The application follows a three-stage decision workflow:
 
-## Setup
+1. **First opinions :** 
+Each council model receives the user question and generates an answer independently, without influence from the others.
 
-### 1. Install Dependencies
+2. **Review :**
+The models are then shown anonymized answers from their peers and asked to rank them based on accuracy and completeness.
 
-The project uses [uv](https://docs.astral.sh/uv/) for project management.
+3. **Final response :**  
+A designated Chairman model analyzes the rankings and responses, and produces a final consolidated answer presented to the user.
 
-**Backend:**
-```bash
-uv sync
-```
+### This approach aims to :
 
-**Frontend:**
-```bash
-cd frontend
-npm install
-cd ..
-```
+- Reduce single-model bias
+- Improve answer completeness and robustness
+- Demonstrate collaborative reasoning between multiple LLMs
+- The entire system runs locally, relying on self-hosted LLMS models like Ollama.
 
-### 2. Configure API Key
+## Setup and Installation Instructions
 
-Create a `.env` file in the project root:
+### Prerequisites
 
-```bash
-OPENROUTER_API_KEY=sk-or-v1-...
-```
+- Docker (with Docker Compose)
+- A machine capable of running local LLMs (CPU sufficient)
+- Internet access (only for initial model download)
 
-Get your API key at [openrouter.ai](https://openrouter.ai/). Make sure to purchase the credits you need, or sign up for automatic top up.
+### Model Configuration
+ 
+Models and roles can be modified by editing this file : backend/config.py
 
-### 3. Configure Models (Optional)
+**Example :** 
 
-Edit `backend/config.py` to customize the council:
-
-```python
+```js
 COUNCIL_MODELS = [
-    "openai/gpt-5.1",
-    "google/gemini-3-pro-preview",
-    "anthropic/claude-sonnet-4.5",
-    "x-ai/grok-4",
+    CouncilModel(ip="ollama", model_name="qwen2.5:1.5b", role=Role.CHAIRMAN),
+    CouncilModel(ip="ollama", model_name="llama3.2:3b", role=Role.COUNCILOR),
+    CouncilModel(ip="ollama", model_name="llama3.2:1b", role=Role.COUNCILOR),
 ]
+```    
 
-CHAIRMAN_MODEL = "google/gemini-3-pro-preview"
-```
+## Instructions to Run the Demo
 
-## Running the Application
+### Docker Compose
 
-**Option 1: Use the start script**
+Clone the github repository :
+
 ```bash
-./start.sh
+git clone https://github.com/Nouf-Nouf/llm-council-GEN-AI.git
+cd llm-council-GEN-AI
 ```
+From the project root directory:
 
-**Option 2: Run manually**
-
-Terminal 1 (Backend):
 ```bash
-uv run python -m backend.main
+docker compose up --build
 ```
 
-Terminal 2 (Frontend):
-```bash
-cd frontend
-npm run dev
-```
+## Project Structure
 
-Then open http://localhost:5173 in your browser.
+```text
+llm-council-GEN-AI/
+├─ backend/
+│  ├─ __init__.py
+│  ├─ config.py
+│  ├─ council.py
+│  ├─ Dockerfile
+│  ├─ main.py
+│  ├─ models.py
+│  ├─ openrouter.py
+│  ├─ requirements.txt
+│  └─ storage.py
+├─ frontend/
+│  ├─ public/
+│  │  └─ vite.svg
+│  ├─ src/
+│  │  ├─ assets/
+│  │  │  └─ react.svg
+│  │  ├─ components/
+│  │  │  ├─ ChatInterface.css
+│  │  │  ├─ ChatInterface.jsx
+│  │  │  ├─ Sidebar.css
+│  │  │  ├─ Sidebar.jsx
+│  │  │  ├─ Stage1.css
+│  │  │  ├─ Stage1.jsx
+│  │  │  ├─ Stage2.css
+│  │  │  ├─ Stage2.jsx
+│  │  │  ├─ Stage3.css
+│  │  │  └─ Stage3.jsx
+│  │  ├─ api.js
+│  │  ├─ App.css
+│  │  ├─ App.jsx
+│  │  ├─ index.css
+│  │  ├─ main.jsx
+│  │  └─ ThemeContext.jsx
+│  ├─ .gitignore
+│  ├─ Dockerfile
+│  ├─ eslint.config.js
+│  ├─ index.html
+│  ├─ package.json
+│  ├─ package-lock.json
+│  └─ vite.config.js
+├─ technical_report/
+│  └─ README.md
+├─ .gitignore
+├─ .python-version
+├─ docker-compose.yml
+├─ header.jpg
+├─ main.py
+├─ pyproject.toml
+└─  README.md
 
-## Tech Stack
 
-- **Backend:** FastAPI (Python 3.10+), async httpx, OpenRouter API
-- **Frontend:** React + Vite, react-markdown for rendering
-- **Storage:** JSON files in `data/conversations/`
-- **Package Management:** uv for Python, npm for JavaScript
